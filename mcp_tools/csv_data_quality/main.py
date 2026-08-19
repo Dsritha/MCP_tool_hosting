@@ -27,7 +27,9 @@ import numpy as np
 import pandas as pd
 from fastapi import FastAPI
 from fastmcp import FastMCP
-from fastapi import UploadFile, File
+from pathlib import Path
+from fastapi import UploadFile, File, HTTPException
+from fastapi.responses import FileResponse
 
 # ---------------------------------------------------------------------------
 # Logging configuration
@@ -453,11 +455,31 @@ app = FastAPI(title="CSV Data Quality & Profiling Tool", lifespan=mcp_app.lifesp
 
 @app.post("/upload")
 async def upload_file(file: UploadFile = File(...)):
-    """Accepts local files, saves them to Render's temporary disk, and returns the path."""
+    """Saves incoming local files to Render's temporary /tmp folder."""
     temp_path = f"/tmp/{file.filename}"
     with open(temp_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
     return {"server_file_path": temp_path}
+
+@app.get("/download")
+async def download_file(file_path: str):
+    """
+    Safely retrieves generated output files from Render's /tmp directory 
+    and sends them back to the local client.
+    """
+    path = Path(file_path)
+    # Resolve relative paths relative to /tmp
+    if not path.is_absolute():
+        path = Path("/tmp") / path
+
+    # Directory traversal defense
+    if not str(path).startswith("/tmp"):
+        raise HTTPException(status_code=403, detail="Directory traversal denied.")
+        
+    if not path.exists():
+        raise HTTPException(status_code=404, detail="Requested file does not exist.")
+        
+    return FileResponse(path, filename=path.name)
 
 
 

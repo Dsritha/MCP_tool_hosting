@@ -28,6 +28,8 @@ import csv
 import io
 from typing import Any, Dict, List, Optional, Tuple
 from pathlib import Path
+import shutil
+from fastapi import UploadFile, File
 
 import numpy as np
 import pandas as pd
@@ -819,6 +821,15 @@ def write_excel_output(df: pd.DataFrame, output_path: str) -> str:
 mcp = FastMCP("API Response Transformer")
 mcp_app = mcp.http_app(path="/mcp")
 app = FastAPI(title="API Response Transformer & Enricher", lifespan=mcp_app.lifespan)
+
+@app.post("/upload")
+async def upload_file(file: UploadFile = File(...)):
+    """Accepts local files, saves them to Render's temporary disk, and returns the path."""
+    temp_path = f"/tmp/{file.filename}"
+    with open(temp_path, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+    return {"server_file_path": temp_path}
+
 
 
 @mcp.tool()

@@ -1,9 +1,0 @@
-fastapi
-uvicorn
-mcp
-pandas
-numpy
-scipy
-starlette
-python-dateutil
-aiofiles

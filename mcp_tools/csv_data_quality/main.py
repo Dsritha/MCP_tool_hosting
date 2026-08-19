@@ -451,7 +451,7 @@ def _generate_cleaned_file(df: pd.DataFrame, input_file: str) -> str:
 
 mcp = FastMCP("CSV Data Quality Profiler")
 mcp_app = mcp.http_app(path="/")
-app.mount("/mcp", mcp_app)
+
 app = FastAPI(title="CSV Data Quality & Profiling Tool", lifespan=mcp_app.lifespan)
 
 @app.post("/upload")
@@ -481,7 +481,7 @@ async def download_file(file_path: str):
         raise HTTPException(status_code=404, detail="Requested file does not exist.")
         
     return FileResponse(path, filename=path.name)
-
+app.mount("/mcp", mcp_app)
 
 
 @mcp.tool()

@@ -32,7 +32,7 @@ import shutil
 from datetime import datetime, timezone, timedelta
 from collections import defaultdict, Counter
 from typing import Optional, List, Dict, Any, Tuple
-
+from fastapi import UploadFile, File
 import numpy as np
 import pandas as pd
 from scipy import stats
@@ -621,6 +621,13 @@ mcp = FastMCP("Log Analyzer & Incident Reporter")
 mcp_app = mcp.http_app(path="/mcp")
 app = FastAPI(title="Log Analysis & Incident Report Generator", lifespan=mcp_app.lifespan)
 
+@app.post("/upload")
+async def upload_file(file: UploadFile = File(...)):
+    """Accepts local files, saves them to Render's temporary disk, and returns the path."""
+    temp_path = f"/tmp/{file.filename}"
+    with open(temp_path, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+    return {"server_file_path": temp_path}
 
 # ---------------------------------------------------------------------------
 # Tool: analyze_logs

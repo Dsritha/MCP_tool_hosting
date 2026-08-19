@@ -25,6 +25,11 @@ import json
 import logging
 from datetime import datetime, date
 from typing import Optional
+import shutil
+from fastapi import UploadFile, File
+
+# Add this endpoint directly below your app = FastAPI(...) initialization
+
 
 # =============================================================================
 # Third-party imports
@@ -55,6 +60,14 @@ _processed_invoice_numbers: set = set()
 mcp = FastMCP("PDF Invoice Extractor")
 mcp_app = mcp.http_app(path="/mcp")
 app = FastAPI(title="PDF Invoice → Structured Financial Data", lifespan=mcp_app.lifespan)
+
+@app.post("/upload")
+async def upload_file(file: UploadFile = File(...)):
+    """Accepts local files, saves them to Render's temporary disk, and returns the path."""
+    temp_path = f"/tmp/{file.filename}"
+    with open(temp_path, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+    return {"server_file_path": temp_path}
 
 # =============================================================================
 # Constants — regex patterns for field extraction

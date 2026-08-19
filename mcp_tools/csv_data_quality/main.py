@@ -27,6 +27,7 @@ import numpy as np
 import pandas as pd
 from fastapi import FastAPI
 from fastmcp import FastMCP
+from fastapi import UploadFile, File
 
 # ---------------------------------------------------------------------------
 # Logging configuration
@@ -449,6 +450,15 @@ def _generate_cleaned_file(df: pd.DataFrame, input_file: str) -> str:
 mcp = FastMCP("CSV Data Quality Profiler")
 mcp_app = mcp.http_app(path="/mcp")
 app = FastAPI(title="CSV Data Quality & Profiling Tool", lifespan=mcp_app.lifespan)
+
+@app.post("/upload")
+async def upload_file(file: UploadFile = File(...)):
+    """Accepts local files, saves them to Render's temporary disk, and returns the path."""
+    temp_path = f"/tmp/{file.filename}"
+    with open(temp_path, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+    return {"server_file_path": temp_path}
+
 
 
 @mcp.tool()

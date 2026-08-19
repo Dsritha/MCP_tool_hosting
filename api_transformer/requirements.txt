@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+mcp
+pandas
+openpyxl
+pyyaml
+numpy
+starlette

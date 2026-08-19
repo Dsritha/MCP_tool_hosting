@@ -22,7 +22,7 @@ import os
 import re
 import logging
 from typing import Any
-
+import shutil
 import numpy as np
 import pandas as pd
 from fastapi import FastAPI
